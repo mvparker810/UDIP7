@@ -15,8 +15,8 @@ UT_HOUR = LOCAL_HOUR - UTC_OFFSET_HOURS
 F107 = 150 #seems like average, will investigate further
 
 
-ALT_MIN = 0 #minimum altitude
-ALT_MAX = 200 #max altitude
+ALT_MIN = 100 #minimum altitude
+ALT_MAX = 200  #max altitude
 ALT_STEP = 1 #"fidelity"
 
 aalt = np.arange(ALT_MIN, ALT_MAX, ALT_STEP)
@@ -29,5 +29,8 @@ aalt = np.arange(ALT_MIN, ALT_MAX, ALT_STEP)
     coord='GEO',
     old_output=False)
 
-print(density_profile)
+i = ALT_MIN
+for density in density_profile[0]:
+	print("electron density at " + str(i) + "km: " +  str(density[0]))
+	i += 1
 
