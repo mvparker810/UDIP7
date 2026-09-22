@@ -1,9 +1,31 @@
+#pragma once
 #include <SPI.h>
 #include <SD.h>
+#include "stdint.h"
 
 typedef struct IO_Ctx {
-    uint8_t v;
+    int pin;
+    char tag[32];
+    char photo_path[64];
+
+    File FILE_SWEEP;
+    File FILE_SENSE;
 } IO_Ctx;
 
-int IO_Ctx_Init(int SD_CS_PIN);
+typedef enum PACKET_TYPE : uint8_t {
+    PACKET_SWEEP = 0,
+    PACKET_SENSE = 1
+} PACKET_TYPE;
 
+typedef struct pckt_sense {
+    uint16_t accel;
+    uint16_t gyro;
+} pckt_sense;
+typedef struct pckt_sweep {
+    uint16_t reading;
+} pckt_sweep;
+
+int IO_Ctx_Init(IO_Ctx* ctx, int SD_CS_PIN);
+int IO_Ctx_WritePacket(IO_Ctx* ctx, PACKET_TYPE type, void* data);
+int IO_Ctx_Flush(IO_Ctx* ctx, PACKET_TYPE type);
+int IO_Ctx_Shutdown(IO_Ctx* ctx);
