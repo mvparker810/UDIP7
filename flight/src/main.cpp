@@ -13,8 +13,8 @@
 DUE Specs:
 512KB   Flash Memory
 96KB    SRAM
+single core
 
-Due can read pins 0-4095
 
 */
 
@@ -26,6 +26,13 @@ Due can read pins 0-4095
 #define PACKET_LOG_DELAY_MS 10      //how periodically do we measure and write a packet in ms
 #define PACKET_FLUSH 25             //how many cycles of logging until we flush to the drive
 
+// PIN CONFIG
+#define PIN_SD          -1
+#define PIN_ACCEL       -1
+#define PIN_GYRO        -1
+#define PIN_MAGNET      -1
+#define PIN_TEMPERATURE        -1 //temperature is a long word
+#define PIN_IONS        -1
 
 // ====================
 
@@ -49,7 +56,12 @@ void setup() {
     }   
 
     analogReadResolution(12); //todo 0-4096
-    IO_Ctx_Init(&_IO, -1); //TODO what will the pin be
+    pinMode(PIN_SD, INPUT);
+    pinMode(PIN_ACCEL, INPUT);
+    pinMode(PIN_GYRO, INPUT);
+    pinMode(PIN_MAGNET, INPUT);
+    pinMode(PIN_TEMPERATURE, INPUT);
+    IO_Ctx_Init(&_IO, PIN_SD); //TODO what will the pin be
 
     //_FILE = fopen("");
 
@@ -73,21 +85,34 @@ void loop() {
     if (NOW - packet_last_ms >= PACKET_LOG_DELAY_MS) {
         packet_tick++; 
         packet_last_ms = NOW;
-        bool flush = (!(packet_last_ms % PACKET_FLUSH));
-         //todo is flushing when no data ok?
-
-        if (_SWEEP) {
-            pckt_sweep PCKT = {NOW};
-            //todo measeure sweep data. write to struct
+        bool flush = (packet_tick % PACKET_FLUSH == 0); //Flush every PACKET_FLUSH ticks
+         
+        // if we should be collecting swee pkts and this
+        // is an even tick, grab a sweep pkt
+        if (_SWEEP && packet_tick % 2) {
+            pckt_sweep PCKT = { .TIME = NOW };
+            PCKT.val = analogRead(PIN_IONS); //todo this prob changes
+           
             IO_Ctx_WritePacket(&_IO, PACKET_SWEEP, (void*)&PCKT);
             if (flush) IO_Ctx_Flush(&_IO, PACKET_SWEEP);
-        }
-        {
-            pckt_sense PCKT = {NOW};
-            //todo measeure sensor data. write to struct
+        } else { //else just grab sensor pkts
+            pckt_sense PCKT = { .TIME = NOW };
+            PCKT.accel          = analogRead(PIN_ACCEL);
+            PCKT.gyro           = analogRead(PIN_GYRO);
+            PCKT.magnet         = analogRead(PIN_MAGNET);
+            PCKT.temperature    = analogRead(PIN_TEMPERATURE);
+
             IO_Ctx_WritePacket(&_IO, PACKET_SENSE, (void*)&PCKT);
             if (flush) IO_Ctx_Flush(&_IO, PACKET_SENSE);
         }
+    }
+
+   
+    if (T_PLUS_MS > LANDMARK_TE1) {
+        //todo do probe deployment
+        //todo would i have to do motor stuff asyncronously
+
+        _SWEEP = true;
     }
 
 

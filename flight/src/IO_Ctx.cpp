@@ -50,13 +50,6 @@ int IO_Ctx_Init(IO_Ctx* ctx, int pin) {
         return -1; //ditto
     }
 
-    /*
-    ctx->dataFile = SD.open(path, FILE_WRITE);
-    return (bool)ctx->dataFile;
-    */
-
-
-    //
 
 
     return 0;
@@ -94,20 +87,6 @@ int IO_Ctx_Flush(IO_Ctx* ctx, PACKET_TYPE type) {
 
     return -1;
 }
-/*
-void writePckt(uint8_t* pckt, uint16_t pcktLen) {
-    if (dataFile) {
-        dataFile.write(pckt, pcktLen);
-    }
-}
-
-void sdFlush() {
-    if (dataFile) {
-        dataFile.flush(); // pushes buffered writes to card without closing
-    }
-}
-
-*/
 
 
 int IO_Ctx_Shutdown(IO_Ctx* ctx) {
