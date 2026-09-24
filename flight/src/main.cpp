@@ -13,7 +13,17 @@
 DUE Specs:
 512KB   Flash Memory
 96KB    SRAM
-single core
+single core / no MT
+
+/"skirt deployments looks at the timer signal"
+
+no deployables based on timer
+
+//THRE SIGS to stepper motor
+//open gpio
+//due rtos
+
+seven segment display (eight plsu decimal)
 
 
 */
@@ -23,6 +33,7 @@ single core
 #define LANDMARK_TE2 322
 #define LANDMARK_POWOFF 332
 
+
 #define PACKET_LOG_DELAY_MS 10      //how periodically do we measure and write a packet in ms
 #define PACKET_FLUSH 25             //how many cycles of logging until we flush to the drive
 
@@ -31,8 +42,18 @@ single core
 #define PIN_ACCEL       -1
 #define PIN_GYRO        -1
 #define PIN_MAGNET      -1
-#define PIN_TEMPERATURE        -1 //temperature is a long word
+#define PIN_TEMPERATURE -1 //temperature is a long word
 #define PIN_IONS        -1
+
+
+#define PIN_MOTOR_A     -1
+#define PIN_MOTOR_B     -1
+#define PIN_MOTOR_C     -1
+
+//timer pin
+#define PIN_DEPLOY      -1 //TE1 HIGH > DEPLOY. TE1 LOW > RETRACT
+
+//initialize 7seg above all else
 
 // ====================
 
@@ -56,11 +77,12 @@ void setup() {
     }   
 
     analogReadResolution(12); //todo 0-4096
-    pinMode(PIN_SD, INPUT);
-    pinMode(PIN_ACCEL, INPUT);
-    pinMode(PIN_GYRO, INPUT);
-    pinMode(PIN_MAGNET, INPUT);
-    pinMode(PIN_TEMPERATURE, INPUT);
+    pinMode(PIN_SD,             INPUT);
+    pinMode(PIN_ACCEL,          INPUT);
+    pinMode(PIN_GYRO,           INPUT);
+    pinMode(PIN_MAGNET,         INPUT);
+    pinMode(PIN_TEMPERATURE,    INPUT);
+    pinMode(PIN_DEPLOY,         INPUT);
     IO_Ctx_Init(&_IO, PIN_SD); //TODO what will the pin be
 
     //_FILE = fopen("");
