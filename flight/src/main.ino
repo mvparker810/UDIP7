@@ -113,16 +113,18 @@ void loop() {
         // is an even tick, grab a sweep pkt
         if (_SWEEP && packet_tick % 2) {
             pckt_sweep PCKT = { .TIME = NOW };
-            PCKT.val = analogRead(PIN_IONS); //todo this prob changes
+            //PCKT.val = analogRead(PIN_IONS); //todo this prob changes
            
             IO_Ctx_WritePacket(&_IO, PACKET_SWEEP, (void*)&PCKT);
             if (flush) IO_Ctx_Flush(&_IO, PACKET_SWEEP);
         } else { //else just grab sensor pkts
             pckt_sense PCKT = { .TIME = NOW };
+            /*
             PCKT.accel          = analogRead(PIN_ACCEL);
             PCKT.gyro           = analogRead(PIN_GYRO);
             PCKT.magnet         = analogRead(PIN_MAGNET);
             PCKT.temperature    = analogRead(PIN_TEMPERATURE);
+            */
 
             IO_Ctx_WritePacket(&_IO, PACKET_SENSE, (void*)&PCKT);
             if (flush) IO_Ctx_Flush(&_IO, PACKET_SENSE);
