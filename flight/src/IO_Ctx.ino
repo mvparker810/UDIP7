@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include "IO_Ctx.h"
 #include "stdint.h"
+#include "pin_config.h"
 
 static uint32_t random_32() {
     static bool init = false;
@@ -15,9 +16,8 @@ static uint32_t random_32() {
     return REG_TRNG_ODATA;
 }
 
-int IO_Ctx_Init(IO_Ctx* ctx, int pin) {
-    ctx->pin = pin;
-    if (!SD.begin(pin)) {
+int IO_Ctx_Init(IO_Ctx* ctx) {
+    if (!SD.begin(PIN_SD)) {
         return -1; //todo extensive error logging/handling
     }
 

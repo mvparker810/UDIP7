@@ -5,9 +5,11 @@
 
 #include <Wire.h>
 #include <SPI.h>
-#include <SD.h>
 
+
+#include "pin_config.h"
 #include "IO_Ctx.h"
+#include "Motor.h"
 
 /*
 DUE Specs:
@@ -28,30 +30,10 @@ seven segment display (eight plsu decimal)
 
 */
 
-//in seconds.todo should probably thow these in ms
-#define LANDMARK_TE1 80
-#define LANDMARK_TE2 322
-#define LANDMARK_POWOFF 332
-
-
+//Tuneables
 #define PACKET_LOG_DELAY_MS 10      //how periodically do we measure and write a packet in ms
 #define PACKET_FLUSH 25             //how many cycles of logging until we flush to the drive
 
-// PIN CONFIG
-#define PIN_SD          -1
-#define PIN_ACCEL       -1
-#define PIN_GYRO        -1
-#define PIN_MAGNET      -1
-#define PIN_TEMPERATURE -1 //temperature is a long word
-#define PIN_IONS        -1
-
-
-#define PIN_MOTOR_A     -1
-#define PIN_MOTOR_B     -1
-#define PIN_MOTOR_C     -1
-
-//timer pin
-#define PIN_DEPLOY      -1 //TE1 HIGH > DEPLOY. TE1 LOW > RETRACT
 
 //initialize 7seg above all else
 
@@ -77,14 +59,13 @@ void setup() {
     }   
 
     analogReadResolution(12); //todo 0-4096
-    pinMode(PIN_SD,             INPUT);
     pinMode(PIN_ACCEL,          INPUT);
     pinMode(PIN_GYRO,           INPUT);
     pinMode(PIN_MAGNET,         INPUT);
     pinMode(PIN_TEMPERATURE,    INPUT);
     pinMode(PIN_DEPLOY,         INPUT);
-    IO_Ctx_Init(&_IO, PIN_SD); //TODO what will the pin be
-
+    IO_Ctx_Init(&_IO); //TODO what will the pin be
+    MotorCtx_Init();
     //_FILE = fopen("");
 
     _TINIT = millis(); _TFINAL = 0;
@@ -97,11 +78,13 @@ void setup() {
 void loop() {
     if (!_LOOP) return;
     uint32_t NOW = millis();
-    uint32_t T_PLUS_MS = NOW - _TINIT;
+    //uint32_t T_PLUS_MS = NOW - _TINIT;
 
     static bool _SWEEP = false;
     static uint32_t packet_last_ms = 0;
     static uint32_t packet_tick = 0;
+
+    int motor = MotorCtx_Poll(NOW);
 
     //If we are due for loging data, do it
     if (NOW - packet_last_ms >= PACKET_LOG_DELAY_MS) {
@@ -131,8 +114,9 @@ void loop() {
         }
     }
 
-   
-    if (T_PLUS_MS > LANDMARK_TE1) {
+    //TODO when the special timer pin on, do this.
+    if (false) {
+        MotorCtx_SetState(MOTORSTATE_DEPLOYED);
         //todo do probe deployment
         //todo would i have to do motor stuff asyncronously
 
@@ -140,9 +124,11 @@ void loop() {
     }
 
 
-
+    
 
     _TICK++;
+    delay(10);
+
     if (false) { //exit cond.
         IO_Ctx_Flush(&_IO, PACKET_SWEEP);
         IO_Ctx_Flush(&_IO, PACKET_SENSE);

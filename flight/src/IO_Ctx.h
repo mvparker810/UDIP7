@@ -5,13 +5,12 @@
 
 
 typedef struct IO_Ctx {
-    int pin;
     char tag[32];
     char photo_path[64];
 
     File FILE_SWEEP;
     File FILE_SENSE;
-} IO_Ctx;
+} IO_Ctx; //todo make this static prob
 
 typedef enum PACKET_TYPE : uint8_t {
     PACKET_SWEEP = 0,
@@ -46,7 +45,7 @@ typedef struct pckt_sweep {
 
 
 
-int IO_Ctx_Init(IO_Ctx* ctx, int SD_CS_PIN);
+int IO_Ctx_Init(IO_Ctx* ctx);
 int IO_Ctx_WritePacket(IO_Ctx* ctx, PACKET_TYPE type, void* data);
 int IO_Ctx_Flush(IO_Ctx* ctx, PACKET_TYPE type);
 int IO_Ctx_Shutdown(IO_Ctx* ctx);
