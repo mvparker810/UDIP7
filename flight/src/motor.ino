@@ -32,8 +32,8 @@ int MotorCtx_Init() {
     digitalWrite(PIN_MOTOR_STEP, LOW);
 
     digitalWrite(PIN_MOTOR_MS1, LOW); //Todo why low?
-    digitalWrite(PIN_MOTOR_MS2, LOW); //Todo why low?
-    digitalWrite(PIN_MOTOR_MS3, LOW); //Todo why low?
+    digitalWrite(PIN_MOTOR_MS2, LOW); 
+    digitalWrite(PIN_MOTOR_MS3, LOW);
     
 
     Motor_Ctx.working_steps     = 0;

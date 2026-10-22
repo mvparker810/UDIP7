@@ -11,11 +11,16 @@
 #include "IO_Ctx.h"
 #include "Motor.h"
 
+#include <Arduino.h>
+#include <FreeRTOS_ARM.h>
+
 /*
 DUE Specs:
 512KB   Flash Memory
 96KB    SRAM
 single core / no MT
+
+Freertos is ~10KB flash em
 
 /"skirt deployments looks at the timer signal"
 
@@ -43,6 +48,7 @@ seven segment display (eight plsu decimal)
 
 
 
+/*
 static bool     _LOOP;
 static IO_Ctx   _IO; //use as opaque handle
 uint32_t        _TINIT, _TFINAL; //start and end mission times
@@ -74,8 +80,39 @@ void setup() {
 
 
 
+*/
 
-void loop() {
+
+void Master_Module  (void*);
+void Data_Module    (void*);    
+void Disk_Module    (void*);
+void Motor_Module   (void*);
+void create_module(TaskFunction_t fn, const char *name, uint16_t stack, UBaseType_t prio) {
+    //xTaskCreate(Callback, debug alias, stack size (in bytes), parameters, prio, handle)
+    if (xTaskCreate(fn, name, stack, NULL, prio, NULL) != pdPASS) {
+        Serial.print(name);
+        Serial.println(": Failed to create");
+        while (1);
+    }
+}
+
+void setup() {
+    Serial.begin(115200);
+    create_module(Motor_Module,  "Motor Module",  (1 << 9), 3);
+    create_module(Data_Module,   "Data Module",   (1 << 9), 2);
+    create_module(Master_Module, "Master Module", (1 << 9), 2);
+    create_module(Disk_Module,   "Disk Module",   (1 << 9), 1);
+    vTaskStartScheduler();
+
+    
+    //If we get here, something failed with the scheduler
+    Serial.println("Scheduler failed to start");
+    while (1);
+}
+void loop() { /* Doesnt run */ return; }
+
+
+   /*
     if (!_LOOP) return;
     uint32_t NOW = millis();
     //uint32_t T_PLUS_MS = NOW - _TINIT;
@@ -102,12 +139,11 @@ void loop() {
             if (flush) IO_Ctx_Flush(&_IO, PACKET_SWEEP);
         } else { //else just grab sensor pkts
             pckt_sense PCKT = { .TIME = NOW };
-            /*
-            PCKT.accel          = analogRead(PIN_ACCEL);
-            PCKT.gyro           = analogRead(PIN_GYRO);
-            PCKT.magnet         = analogRead(PIN_MAGNET);
-            PCKT.temperature    = analogRead(PIN_TEMPERATURE);
-            */
+            //PCKT.accel          = analogRead(PIN_ACCEL);
+            //PCKT.gyro           = analogRead(PIN_GYRO);
+            //PCKT.magnet         = analogRead(PIN_MAGNET);
+            //PCKT.temperature    = analogRead(PIN_TEMPERATURE);
+            
 
             IO_Ctx_WritePacket(&_IO, PACKET_SENSE, (void*)&PCKT);
             if (flush) IO_Ctx_Flush(&_IO, PACKET_SENSE);
@@ -115,7 +151,7 @@ void loop() {
     }
 
     //TODO when the special timer pin on, do this.
-    if (false) {
+    if (digitalRead(PIN_DEPLOY)) {
         MotorCtx_SetState(MOTORSTATE_DEPLOYED);
         //todo do probe deployment
         //todo would i have to do motor stuff asyncronously
@@ -137,6 +173,5 @@ void loop() {
         _LOOP = false;
         _TFINAL = millis();
     }
+    */
    
-}
-

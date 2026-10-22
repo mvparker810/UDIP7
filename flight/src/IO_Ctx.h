@@ -30,7 +30,7 @@ typedef struct pckt_sense {
 
     uint16_t accel_coarse;
     uint16_t temperature;
-    uint16_t photo;
+    
 } pckt_sense;
 typedef struct pckt_sweep {
     pckt_timestamp TIME;
@@ -41,6 +41,9 @@ typedef struct pckt_sweep {
 
     //[0] = Probe A, [1] = Probe B
     uint16_t curr[2]; //    reading from probes
+
+    //Photoresistor things (TODO make enum for this. ABCD).
+    uint16_t photo[3];
 } pckt_sweep;
 
 

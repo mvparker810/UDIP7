@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdint.h>
 
 typedef enum MOTORSTATE : uint8_t {
