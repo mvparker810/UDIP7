@@ -8,11 +8,33 @@
 
 
 #include "pin_config.h"
-#include "IO_Ctx.h"
-#include "Motor.h"
+#include "main.h"
 
-#include <Arduino.h>
-#include <FreeRTOS_ARM.h>
+SystemContext ctx;
+
+void setup() {
+    Serial.begin(115200);
+    while (!Serial);
+
+    #define X(NAME, STACK, PRIO) NAME##_Init();
+    MODULES(X)
+    #undef X
+
+    #define X(NAME, STACK, PRIO) \
+        if (xTaskCreate(NAME##_Module, #NAME, STACK, &ctx, PRIO, &ctx.NAME) != pdPASS) { \
+            Serial.println(#NAME ": Failed to create"); while (1) {} \
+        }
+    MODULES(X)
+    #undef X
+
+    vTaskStartScheduler();
+
+    //if we get here, something failed with the scheduler
+    Serial.println("Scheduler failed to start");
+    while (1);
+}
+void loop() { /* Doesnt run */ return; }
+
 
 /*
 DUE Specs:
@@ -34,11 +56,6 @@ seven segment display (eight plsu decimal)
 
 
 */
-
-//Tuneables
-#define PACKET_LOG_DELAY_MS 10      //how periodically do we measure and write a packet in ms
-#define PACKET_FLUSH 25             //how many cycles of logging until we flush to the drive
-
 
 //initialize 7seg above all else
 
@@ -82,34 +99,6 @@ void setup() {
 
 */
 
-
-void Master_Module  (void*);
-void Data_Module    (void*);    
-void Disk_Module    (void*);
-void Motor_Module   (void*);
-void create_module(TaskFunction_t fn, const char *name, uint16_t stack, UBaseType_t prio) {
-    //xTaskCreate(Callback, debug alias, stack size (in bytes), parameters, prio, handle)
-    if (xTaskCreate(fn, name, stack, NULL, prio, NULL) != pdPASS) {
-        Serial.print(name);
-        Serial.println(": Failed to create");
-        while (1);
-    }
-}
-
-void setup() {
-    Serial.begin(115200);
-    create_module(Motor_Module,  "Motor Module",  (1 << 9), 3);
-    create_module(Data_Module,   "Data Module",   (1 << 9), 2);
-    create_module(Master_Module, "Master Module", (1 << 9), 2);
-    create_module(Disk_Module,   "Disk Module",   (1 << 9), 1);
-    vTaskStartScheduler();
-
-    
-    //If we get here, something failed with the scheduler
-    Serial.println("Scheduler failed to start");
-    while (1);
-}
-void loop() { /* Doesnt run */ return; }
 
 
    /*
